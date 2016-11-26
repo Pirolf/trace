@@ -1,0 +1,3 @@
+class SpanContext
+  
+end
