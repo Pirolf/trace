@@ -11,7 +11,6 @@ module GlobalTracer
   end
 
   def self.start_span(span)
-    p span
     @@global_tracer_singleton.start_span(span)
   end
 end
