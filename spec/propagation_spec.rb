@@ -6,10 +6,10 @@ RSpec.describe 'Propagation' do
   require 'net/http'
   require 'webmock/rspec'
 
-  describe 'TextMapPropagator' do
-    let(:default_propagator) { @textMapPropagator = TextMapPropagator.new }
-    let(:http_headers_propagator) { @textMapPropagator = TextMapPropagator.new(true) }
+  let(:default_propagator) { @textMapPropagator = TextMapPropagator.new }
+  let(:http_headers_propagator) { @textMapPropagator = TextMapPropagator.new(true) }
 
+  describe 'TextMapPropagator' do
     describe '#initialize' do
       context 'when http_headers is not set' do
         before(:each) { default_propagator }
@@ -61,7 +61,22 @@ RSpec.describe 'Propagation' do
     end
 
     describe '#extract' do
-      #TODO: fill this
+      before(:each) do
+        default_propagator
+
+        @carrier = TextMapCarrier.new
+        @carrier.set('trace_id', 'some-trace_id')
+        @carrier.set('span_id', 'some-span_id')
+        @carrier.set('sampled', true)
+      end
+
+      it 'returns span context with trace_id, span_id, and sampled' do
+        spanContext = @textMapPropagator.extract(@carrier)
+
+        expect(spanContext.trace_id).to eq('some-trace_id')
+        expect(spanContext.span_id).to eq('some-span_id')
+        expect(spanContext.sampled).to eq(true)
+      end
     end
   end
 

@@ -1,3 +1,5 @@
+require './span_context'
+
 module TextMapWriter
   def set(k, v)
     raise NotImplementedError
@@ -66,5 +68,14 @@ class TextMapPropagator
   end
 
   def extract(carrier)
+    hash = {}
+
+    carrier.foreach_key do |k, v|
+      if [:trace_id, :span_id, :sampled].include? k
+        hash[k] = v
+      end
+    end
+
+    SpanContext.new(hash[:trace_id], hash[:span_id], hash[:sampled])
   end
 end
