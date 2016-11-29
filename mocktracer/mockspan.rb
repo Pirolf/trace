@@ -1,15 +1,17 @@
 require './span'
 
 class MockSpan < Span
-  attr_reader :finish_time, :operation_name, :tracer
+  attr_reader :start_time, :finish_time, :operation_name, :tracer
 
-  def initialize(tracer, name)
+  def initialize(tracer, name, opts = {})
     @tracer = tracer
     @operation_name = name
+    @start_time = opts[:start_time] || Time.now
   end
 
   def finish
     @finish_time = Time.now
+    @tracer.record_span(self)
   end
 
   def finish_with_options(opts)
