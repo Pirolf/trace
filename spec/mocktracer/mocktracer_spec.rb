@@ -28,6 +28,10 @@ RSpec.describe 'MockTracer' do
     it 'registers injectors' do
       expect(@mocktracer.injectors).to eq(text_map: @default_propagator, http_headers: @http_propagator)
     end
+
+    it 'registers extractors' do
+      expect(@mocktracer.extractors).to eq(text_map: @default_propagator, http_headers: @http_propagator)
+    end
   end
 
   describe '#start_span' do
@@ -57,6 +61,34 @@ RSpec.describe 'MockTracer' do
         expect{ @mocktracer.inject(@span_context, :unknown_format, @carrier) }.to raise_error(NameError)
         expect(@http_propagator).not_to have_received(:inject)
         expect(@default_propagator).not_to have_received(:inject)
+      end
+    end
+  end
+
+  describe '#extract' do
+    before(:each) do
+      @carrier = instance_double('TextMapPropagator')
+    end
+
+    context 'when extractor with the format exists' do
+      before(:each) do
+        @mock_span_context = instance_double('SpanContext')
+        allow(@http_propagator).to receive(:extract).and_return(@mock_span_context)
+      end
+
+      it 'extracts the span context with the carrier' do
+        span_context = @mocktracer.extract(:http_headers, @carrier)
+        expect(span_context).to eq(@mock_span_context)
+        expect(@http_propagator).to have_received(:extract).once.with(@carrier)
+        expect(@default_propagator).not_to have_received(:extract)
+      end
+    end
+
+    context 'when extractor with the format does not exist' do
+      it 'raises error' do
+        expect{ @mocktracer.extract(:unknown_format, @carrier) }.to raise_error(NameError)
+        expect(@http_propagator).not_to have_received(:extract)
+        expect(@default_propagator).not_to have_received(:extract)
       end
     end
   end

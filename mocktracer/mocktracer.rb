@@ -7,10 +7,13 @@ class MockTracer < TracerInterface
 
   def initialize
     @finished_spans = []
+    default_propagator = TextMapPropagator.new
+    http_propagator = TextMapPropagator.new(true)
     @injectors = {
-      text_map: TextMapPropagator.new,
-      http_headers: TextMapPropagator.new(true)
+      text_map: default_propagator,
+      http_headers: http_propagator
     }
+    @extractors = @injectors
   end
 
   def start_span(op_name)
@@ -25,6 +28,10 @@ class MockTracer < TracerInterface
   end
 
   def extract(format, carrier)
+    extractor = @extractors[format]
+    raise NameError if (!extractor)
+
+    extractor.extract(carrier)
   end
 
   def record_span(span)

@@ -3,6 +3,8 @@ require './spec/spec_helper'
 RSpec.describe 'Propagation' do
   require './propagation'
   require './span_context'
+  require 'net/http'
+  require 'webmock/rspec'
 
   describe 'TextMapPropagator' do
     let(:default_propagator) { @textMapPropagator = TextMapPropagator.new }
@@ -29,7 +31,7 @@ RSpec.describe 'Propagation' do
     describe '#inject' do
       let(:setup_params) do
         @span_context = SpanContext.new('some-trace-id', 'some-span-id')
-        @carrier = TextMapWriter.new
+        @carrier = TextMapCarrier.new
       end
 
       before(:each) do
@@ -55,6 +57,69 @@ RSpec.describe 'Propagation' do
         end
 
         @textMapPropagator.inject(@span_context, @carrier)
+      end
+    end
+
+    describe '#extract' do
+      #TODO: fill this
+    end
+  end
+
+  describe 'TextMapCarrier' do
+    before(:each) { @textMapCarrier = TextMapCarrier.new }
+    describe '#foreach_key' do
+      context 'when block is given' do
+        before(:each) do
+          @textMapCarrier.set('k1', 'v1')
+          @textMapCarrier.set('k2', 'v2')
+        end
+
+        it 'yield for each key value pair' do
+          expect{ |b| @textMapCarrier.foreach_key(&b) }.to yield_successive_args([:k1, 'v1'], [:k2, 'v2'])
+        end
+      end
+
+      context 'when block is not given' do
+        it 'does nothing' do
+          expect{ @textMapCarrier.foreach_key }.not_to raise_error
+        end
+      end
+    end
+
+    describe '#set' do
+      it 'adds k, v pair to entries' do
+        @textMapCarrier.set('k', 'v')
+        expect(@textMapCarrier.entries).to eq({k: 'v'})
+      end
+    end
+  end
+
+  describe 'HttpHeadersCarrier' do
+    before(:each) do
+      stub_request(:any, 'www.example.com')
+      @req = Net::HTTP::Get.new(URI('http://www.example.com'))
+      @req.initialize_http_header({foo: "bar", meow: 'cat'})
+      @httpHeadersCarrier = HttpHeadersCarrier.new(@req)
+    end
+
+    describe '#foreach_key' do
+      context 'when block is given' do
+        it 'yield for each key value pair' do
+          expect{ |b| @httpHeadersCarrier.foreach_key(&b) }.to yield_successive_args([:foo, 'bar'], [:meow, 'cat'])
+        end
+      end
+
+      context 'when block is not given' do
+        it 'does nothing' do
+          expect{ @httpHeadersCarrier.foreach_key }.not_to raise_error
+        end
+      end
+    end
+
+    describe '#set' do
+      it 'adds to headers' do
+        @httpHeadersCarrier.set('k', 'v')
+        expect(@httpHeadersCarrier.headers.to_hash).to eq({foo: ["bar"], meow: ['cat'], k: ['v']})
       end
     end
   end
