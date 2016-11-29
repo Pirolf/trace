@@ -1,13 +1,17 @@
 class SpanContext
-  attr_accessor :trace_id, :span_id, :sampled
+  attr_accessor :trace_id, :span_id, :sampled, :baggage
 
-  def initialize(trace_id, span_id, sampled = false)
+  def initialize(trace_id, span_id, sampled = false, baggage = {})
     @trace_id = trace_id
     @span_id = span_id
     @sampled = sampled
+    @baggage = baggage
   end
 
   def foreach_baggage_item
-    raise NotImplementedError
+    return if !block_given?
+    @baggage.each_pair do |k, v|
+      yield(k, v)
+    end
   end
 end
