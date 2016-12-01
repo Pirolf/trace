@@ -1,3 +1,3 @@
 # Trace
 
-![Travis-CI](https://travis-ci.org/Pirolf/trace.svg)
+[![Build Status](https://travis-ci.org/Pirolf/trace.svg)](https://travis-ci.org/Pirolf/trace)
