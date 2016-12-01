@@ -1,3 +1,3 @@
 # Trace
 
-https://travis-ci.org/Pirolf/trace.svg?branch=master
+![Travis-CI](https://travis-ci.org/Pirolf/trace.svg)
