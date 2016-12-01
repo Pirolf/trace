@@ -22,13 +22,9 @@ class MockSpan < Span
     end
   end
 
-  def finish
-    @finish_time = Time.now
+  def finish(opts = {})
+    @finish_time = opts[:finish_time] || Time.now
     @tracer.record_span(self)
-  end
-
-  def finish_with_options(opts)
-
   end
 
   def set_operation_name(operation_name)

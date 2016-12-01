@@ -107,6 +107,13 @@ RSpec.describe 'MockSpan' do
       @mockspan.finish
       expect(@mocktracer).to have_received(:record_span).once.with(@mockspan)
     end
+
+    context 'when finish_time is given in the options' do
+      it 'sets finish time with it' do
+        @mockspan.finish finish_time: 'some-finish-time'
+        expect(@mockspan.finish_time).to eq('some-finish-time')
+      end
+    end
   end
 
   describe '#set_operation_name' do

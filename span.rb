@@ -5,11 +5,7 @@ class Span
     @span_context
   end
 
-  def finish
-    raise NotImplementedError
-  end
-
-  def finish_with_options(opts)
+  def finish(opts)
     raise NotImplementedError
   end
 
