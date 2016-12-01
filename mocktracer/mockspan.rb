@@ -1,12 +1,25 @@
 require './span'
+require './span_context'
+require 'uuid'
 
 class MockSpan < Span
-  attr_reader :start_time, :finish_time, :operation_name, :tracer
+  attr_reader :start_time, :finish_time, :operation_name
 
   def initialize(tracer, name, opts = {})
     @tracer = tracer
     @operation_name = name
     @start_time = opts[:start_time] || Time.now
+
+    reference = opts[:reference]
+    span_id = UUID.generate
+    if !reference
+      @span_context = SpanContext.new(UUID.generate, span_id)
+      @parent_id = '-'
+    else
+      context = reference.referenced_context
+      @span_context = SpanContext.new(context.trace_id, span_id)
+      @parent_id = context.span_id
+    end
   end
 
   def finish
@@ -15,10 +28,6 @@ class MockSpan < Span
   end
 
   def finish_with_options(opts)
-
-  end
-
-  def context
 
   end
 

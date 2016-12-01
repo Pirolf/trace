@@ -2,6 +2,9 @@ require './spec/spec_helper'
 
 RSpec.describe 'MockSpan' do
   require './mocktracer/mockspan'
+  require './span_context'
+  require './span'
+  require 'uuid'
 
   let(:mock_time) do
     @mockTime = double('mockTime')
@@ -21,15 +24,53 @@ RSpec.describe 'MockSpan' do
     end
 
     describe 'span context' do
-      context 'when there is no reference' do
-        it 'generates a new trace id' do
+      let(:fake_span_id) do
+        @span_id = 'some-span-id'
+        allow(UUID).to receive(:generate).and_return(@span_id)
+      end
 
+      context 'when there is no reference' do
+        let(:fake_trace_id) do
+          @trace_id = 'some-trace-id'
+          allow(UUID).to receive(:generate).and_return(@trace_id)
+        end
+
+        it 'generates a new trace id' do
+          fake_trace_id
+          @mockspan = MockSpan.new(@mocktracer, @name)
+          expect(@mockspan.span_context.trace_id).to eq(@trace_id)
+        end
+
+        it 'generates a new span id' do
+          fake_span_id
+          @mockspan = MockSpan.new(@mocktracer, @name)
+          expect(@mockspan.span_context.span_id).to eq(@span_id)
+        end
+
+        it 'sets parent id to -' do
+          @mockspan = MockSpan.new(@mocktracer, @name)
+          expect(@mockspan.parent_id).to eq('-')
         end
       end
 
       context 'when there is a reference' do
-        it 'inherits the trace id from the first reference' do
+        before(:each) do
+          context = SpanContext.new('some-trace-id', 'some-span_id')
+          @reference = SpanReference.new(context, :child_of)
+          fake_span_id
+          @mockspan = MockSpan.new(@mocktracer, @name, {reference: @reference})
+        end
 
+        it 'inherits the trace id' do
+          expect(@mockspan.span_context.trace_id).to eq('some-trace-id')
+        end
+
+        it 'generates a new span id' do
+          expect(@mockspan.span_context.span_id).to eq(@span_id)
+        end
+
+        it 'sets referenced span as parent' do
+          expect(@mockspan.parent_id).to eq('some-span_id')
         end
       end
     end
