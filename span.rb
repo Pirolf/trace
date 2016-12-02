@@ -1,4 +1,4 @@
-class Span
+module Span
   attr_reader :span_context, :tracer, :parent_id
 
   def context
@@ -30,7 +30,7 @@ class Span
   end
 end
 
-class SpanReference
+module SpanReference
   attr_reader :referenced_context, :reference_type
 
   def initialize(context, type)

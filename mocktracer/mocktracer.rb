@@ -1,12 +1,15 @@
-require './tracer'
 require './mocktracer/mockspan'
+require './mocktracer/mockspan_context'
 require './propagation'
+require 'concurrent'
+require './tracer'
 
-class MockTracer < TracerInterface
+class MockTracer
+  include TracerInterface
   attr_reader :finished_spans, :injectors, :extractors
 
   def initialize
-    @finished_spans = []
+    @finished_spans = Concurrent::Array.new
     default_propagator = TextMapPropagator.new
     http_propagator = TextMapPropagator.new(true)
     @injectors = {
@@ -31,7 +34,7 @@ class MockTracer < TracerInterface
     extractor = @extractors[format]
     raise NameError if (!extractor)
 
-    extractor.extract(carrier)
+    extractor.extract(carrier, MockSpanContext)
   end
 
   def record_span(span)

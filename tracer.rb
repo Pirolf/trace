@@ -1,4 +1,4 @@
-class TracerInterface
+module TracerInterface
   def start_span(op_name)
     raise NotImplementedError
   end

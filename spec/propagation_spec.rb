@@ -5,6 +5,9 @@ RSpec.describe 'Propagation' do
   require './span_context'
   require 'net/http'
   require 'webmock/rspec'
+  class TestSpanContext
+    include SpanContext
+  end
 
   let(:default_propagator) { @textMapPropagator = TextMapPropagator.new }
   let(:http_headers_propagator) { @textMapPropagator = TextMapPropagator.new(true) }
@@ -30,7 +33,7 @@ RSpec.describe 'Propagation' do
 
     describe '#inject' do
       let(:setup_params) do
-        @span_context = SpanContext.new('some-trace-id', 'some-span-id')
+        @span_context = TestSpanContext.new('some-trace-id', 'some-span-id')
         @carrier = TextMapCarrier.new
       end
 
@@ -71,7 +74,7 @@ RSpec.describe 'Propagation' do
       end
 
       it 'returns span context with trace_id, span_id, and sampled' do
-        spanContext = @textMapPropagator.extract(@carrier)
+        spanContext = @textMapPropagator.extract(@carrier, MockSpanContext)
 
         expect(spanContext.trace_id).to eq('some-trace_id')
         expect(spanContext.span_id).to eq('some-span_id')

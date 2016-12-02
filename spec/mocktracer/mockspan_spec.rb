@@ -2,7 +2,7 @@ require './spec/spec_helper'
 
 RSpec.describe 'MockSpan' do
   require './mocktracer/mockspan'
-  require './span_context'
+  require './mocktracer/mockspan_context'
   require './span'
   require 'uuid'
 
@@ -55,8 +55,8 @@ RSpec.describe 'MockSpan' do
 
       context 'when there is a reference' do
         before(:each) do
-          context = SpanContext.new('some-trace-id', 'some-span_id')
-          @reference = SpanReference.new(context, :child_of)
+          context = MockSpanContext.new('some-trace-id', 'some-span_id')
+          @reference = MockSpanReference.new(context, :child_of)
           fake_span_id
           @mockspan = MockSpan.new(@mocktracer, @name, {reference: @reference})
         end

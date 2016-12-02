@@ -1,7 +1,9 @@
-class SpanContext
+require 'concurrent'
+
+module SpanContext
   attr_accessor :trace_id, :span_id, :sampled, :baggage
 
-  def initialize(trace_id, span_id, sampled = false, baggage = {})
+  def initialize(trace_id, span_id, sampled = false, baggage = Concurrent::Hash.new)
     @trace_id = trace_id
     @span_id = span_id
     @sampled = sampled

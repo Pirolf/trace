@@ -1,8 +1,9 @@
 require './span'
-require './span_context'
+require './mocktracer/mockspan_context'
 require 'uuid'
 
-class MockSpan < Span
+class MockSpan
+  include Span
   attr_reader :start_time, :finish_time, :operation_name
 
   def initialize(tracer, name, opts = {})
@@ -13,11 +14,11 @@ class MockSpan < Span
     reference = opts[:reference]
     span_id = UUID.generate
     if !reference
-      @span_context = SpanContext.new(UUID.generate, span_id)
+      @span_context = MockSpanContext.new(UUID.generate, span_id)
       @parent_id = '-'
     else
       context = reference.referenced_context
-      @span_context = SpanContext.new(context.trace_id, span_id)
+      @span_context = MockSpanContext.new(context.trace_id, span_id)
       @parent_id = context.span_id
     end
   end

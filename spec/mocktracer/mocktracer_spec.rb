@@ -3,6 +3,7 @@ require './spec/spec_helper'
 RSpec.describe 'MockTracer' do
   require './mocktracer/mocktracer'
   require './mocktracer/mockspan'
+  require './mocktracer/mockspan_context'
 
   let(:op_name) { @op_name = 'some-op-name' }
   let(:mockspan) { @mockspan = instance_double('MockSpan') }
@@ -79,7 +80,7 @@ RSpec.describe 'MockTracer' do
       it 'extracts the span context with the carrier' do
         span_context = @mocktracer.extract(:http_headers, @carrier)
         expect(span_context).to eq(@mock_span_context)
-        expect(@http_propagator).to have_received(:extract).once.with(@carrier)
+        expect(@http_propagator).to have_received(:extract).once.with(@carrier, MockSpanContext)
         expect(@default_propagator).not_to have_received(:extract)
       end
     end
@@ -94,21 +95,43 @@ RSpec.describe 'MockTracer' do
   end
 
   describe '#record_span' do
+    before(:each) { mockspan }
+
     it 'add span to finished spans' do
-      mockspan
       @mocktracer.record_span(@mockspan)
       expect(@mocktracer.finished_spans).to eq([@mockspan])
+    end
+
+    context 'when lock is held' do
+      before(:each) { @mockspan2 = instance_double('MockSpan') }
+
+      it 'records span when lock is released' do
+        t1 = Thread.new do
+          sleep(0.001)
+          expect(@mocktracer.finished_spans).to eq([])
+          @mocktracer.record_span(@mockspan2)
+          expect(@mocktracer.finished_spans).to eq([@mockspan2])
+        end
+
+        t2 = Thread.new do
+          expect(@mocktracer.finished_spans).to eq([])
+          @mocktracer.record_span(@mockspan)
+          expect(@mocktracer.finished_spans).to eq([@mockspan])
+          @mocktracer.reset
+        end
+
+        [t1, t2].each(&:join)
+      end
     end
   end
 
   describe '#reset' do
-    before(:each) do
-      mockspan
-      @mocktracer.record_span(@mockspan)
-      expect(@mocktracer.finished_spans).to eq([@mockspan])
-    end
+    before(:each) { mockspan }
 
     it 'clears finished spans' do
+      @mocktracer.record_span(@mockspan)
+      expect(@mocktracer.finished_spans).to eq([@mockspan])
+
       @mocktracer.reset
       expect(@mocktracer.finished_spans).to eq([])
     end

@@ -18,7 +18,7 @@ class TextMapCarrier
   attr_reader :entries
 
   def initialize
-    @entries = {}
+    @entries = Concurrent::Hash.new
   end
 
   def foreach_key
@@ -67,7 +67,7 @@ class TextMapPropagator
     end
   end
 
-  def extract(carrier)
+  def extract(carrier, span_context_klass)
     hash = {}
 
     carrier.foreach_key do |k, v|
@@ -76,6 +76,6 @@ class TextMapPropagator
       end
     end
 
-    SpanContext.new(hash[:trace_id], hash[:span_id], hash[:sampled])
+    span_context_klass.new(hash[:trace_id], hash[:span_id], hash[:sampled])
   end
 end

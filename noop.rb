@@ -1,6 +1,7 @@
 require './tracer'
 
-class Noop < TracerInterface
+class Noop
+  include TracerInterface
   def start_span(op_name)
   end
 
