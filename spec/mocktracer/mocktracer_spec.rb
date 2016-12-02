@@ -101,28 +101,6 @@ RSpec.describe 'MockTracer' do
       @mocktracer.record_span(@mockspan)
       expect(@mocktracer.finished_spans).to eq([@mockspan])
     end
-
-    context 'when lock is held' do
-      before(:each) { @mockspan2 = instance_double('MockSpan') }
-
-      it 'records span when lock is released' do
-        t1 = Thread.new do
-          sleep(0.001)
-          expect(@mocktracer.finished_spans).to eq([])
-          @mocktracer.record_span(@mockspan2)
-          expect(@mocktracer.finished_spans).to eq([@mockspan2])
-        end
-
-        t2 = Thread.new do
-          expect(@mocktracer.finished_spans).to eq([])
-          @mocktracer.record_span(@mockspan)
-          expect(@mocktracer.finished_spans).to eq([@mockspan])
-          @mocktracer.reset
-        end
-
-        [t1, t2].each(&:join)
-      end
-    end
   end
 
   describe '#reset' do
