@@ -37,6 +37,7 @@ class HttpHeadersCarrier
   include TextMapReader
   include TextMapWriter
   attr_reader :headers
+  @@prefix = 'http_'
 
   def initialize(headers)
     @headers = headers
@@ -44,8 +45,12 @@ class HttpHeadersCarrier
 
   def foreach_key
     return if !block_given?
-    @headers.each_header do |k, v|
-      yield(k, v)
+    @headers.each do |k, v|
+      key = k.to_s.downcase
+      if key.start_with?(@@prefix)
+        key = key[@@prefix.length..-1]
+      end
+      yield(key.to_sym, v)
     end
   end
 

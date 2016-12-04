@@ -116,14 +116,16 @@ RSpec.describe 'Propagation' do
     before(:each) do
       stub_request(:any, 'www.example.com')
       @req = Net::HTTP::Get.new(URI('http://www.example.com'))
-      @req.initialize_http_header({foo: "bar", meow: 'cat'})
+      @req.initialize_http_header({http_foo: "bar", http_meow: 'cat', fluffy: 'f'})
       @httpHeadersCarrier = HttpHeadersCarrier.new(@req)
     end
 
     describe '#foreach_key' do
       context 'when block is given' do
-        it 'yield for each key value pair' do
-          expect{ |b| @httpHeadersCarrier.foreach_key(&b) }.to yield_successive_args([:foo, 'bar'], [:meow, 'cat'])
+        it 'yield for each key value pair with key in lowercase with prefix stripped' do
+          expect{ |b| @httpHeadersCarrier.foreach_key(&b) }.to yield_successive_args(
+            [:foo, 'bar'], [:meow, 'cat'], [:fluffy, 'f']
+          )
         end
       end
 
@@ -137,7 +139,7 @@ RSpec.describe 'Propagation' do
     describe '#set' do
       it 'adds to headers' do
         @httpHeadersCarrier.set('k', 'v')
-        expect(@httpHeadersCarrier.headers.to_hash).to eq({foo: ["bar"], meow: ['cat'], k: ['v']})
+        expect(@httpHeadersCarrier.headers.to_hash).to eq({http_foo: ["bar"], http_meow: ['cat'], fluffy: ['f'], k: ['v']})
       end
     end
   end

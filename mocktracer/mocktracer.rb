@@ -19,8 +19,8 @@ class MockTracer
     @extractors = @injectors
   end
 
-  def start_span(op_name)
-    MockSpan.new(self, op_name)
+  def start_span(op_name, opts = {})
+    MockSpan.new(self, op_name, opts)
   end
 
   def inject(span_context, format, carrier)

@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 gem 'uuid', '~> 2.3', '>= 2.3.8'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.2'
+gem 'sinatra', '~> 1.4', '>= 1.4.7'
 
 group :test do
   gem 'rspec', '~> 3.5'
