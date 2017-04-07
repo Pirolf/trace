@@ -12,7 +12,7 @@ def forward_request(n, headers, tracer)
   uri = URI("http://localhost:4567/#{n+1}")
   http = Net::HTTP.new(uri.host, uri.port)
   r = Net::HTTP::Get.new(uri)
-  headers.each do { |k, v| r.add_field(k, v) }
+  headers.each { |k, v| r.add_field(k, v) }
   http.request r
 end
 
@@ -32,4 +32,8 @@ get '/2' do
 
   p "parent - trace_id: #{parent.trace_id}, span_id: #{parent.span_id}"
   p "current span - trace_id: #{span.context.trace_id}, span_id: #{span.context.span_id}, parent: #{span.parent_id}"
+end
+
+get '/3' do
+  p env
 end
